@@ -3,7 +3,7 @@
 namespace SitPHP\Events;
 
 
-abstract class Subscriber extends Listener
+abstract class Subscriber
 {
-    abstract static function getEventListeners() : array;
+    abstract function getEventListeners();
 }

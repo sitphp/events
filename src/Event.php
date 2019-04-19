@@ -2,37 +2,24 @@
 
 namespace SitPHP\Events;
 
-use SitPHP\Services\ServiceTrait;
-
 class Event
 {
-    use ServiceTrait;
-
-    protected static $services = [
-        'event_manager' => EventManager::class
-    ];
-    protected static $instances = [];
 
     // User properties
-    protected $name;
-    protected $params = [];
-    protected $fire_count = 0;
-
+    private $name;
+    private $is_propagation_stopped = false;
+    private $params = [];
+    /**
+     * @var EventManager
+     */
+    private $manager;
 
     /**
+     * Event constructor.
+     *
      * @param string $name
-     * @return self
      */
-    static function getInstance(string $name)
-    {
-        if (isset(self::$instances[$name])) {
-            return self::$instances[$name];
-        }
-        self::$instances[$name] = new static($name);
-        return self::$instances[$name];
-    }
-
-    protected function __construct(string $name)
+    function __construct(string $name)
     {
         $this->name = $name;
     }
@@ -47,12 +34,18 @@ class Event
         return $this->name;
     }
 
-    function addParam($value){
+    /**
+     * Add an event parameter
+     *
+     * @param $value
+     */
+    function addParam($value)
+    {
         $this->params[] = $value;
     }
 
     /**
-     * Set event param
+     * Set event parameter
      *
      * @param string|int $name
      * @param $value
@@ -68,7 +61,7 @@ class Event
 
 
     /**
-     * Return event param
+     * Return event parameter
      *
      * @param $name
      * @return array|string|null
@@ -79,14 +72,21 @@ class Event
     }
 
     /**
-     * Reset params
+     * Remove a parameter
+     *
+     * @param $name
      */
-    function resetParams(){
-        $this->params = [];
+    function removeParam($name)
+    {
+        unset($this->params[$name]);
     }
 
-    function removeParam($name){
-        unset($this->params[$name]);
+    /**
+     * Remove all event parameters
+     */
+    function removeAllParams()
+    {
+        $this->params = [];
     }
 
     /**
@@ -94,85 +94,28 @@ class Event
      *
      * @return array
      */
-    function getAllParams(){
+    function getAllParams()
+    {
         return $this->params;
     }
 
-    /**
-     * Fire event with given params
-     *
-     * @param array|null $params
-     */
-    function fire(array $params = [])
-    {
-        foreach ($params as $key => $value){
-            $this->setParam($key, $value);
-        }
-        $this->fire_count++;
-
-        $listeners = $this->getListeners();
-
-        foreach ($listeners as $listener) {
-            $call = $listener['call'];
-            $method = $listener['method'];
-            if (is_subclass_of($call, Listener::class)) {
-                /** @var Listener $call */
-                if(!is_object($call)) {
-                    $call = $call::getInstance();
-                }
-                if($method !== null) {
-                    $response = $call->execute($this, $method);
-                } else {
-                    $response = $call->execute($this);
-                }
-            } else if ($call instanceof \Closure) {
-                $response = $call($this);
-            }
-            else {
-                throw new \InvalidArgumentException('Invalid listener call type : expected instance of '.\Closure::class.' or subclass of ' . Listener::class . '. Type ' . gettype($call) . ' found');
-            }
-            if ($response === false) {
-                break;
-            }
-        }
-        $this->params = [];
+    function setManager(EventManager $manager){
+        $this->manager = $manager;
     }
 
-    /**
-     * Check is event was fired
-     *
-     * @return bool
-     */
-    function isFired()
-    {
-        return $this->fire_count > 0;
+    function getManager(){
+        return $this->manager;
     }
 
-    /**
-     * Return fire count
-     *
-     * @return int
-     */
-    function getFireCount()
-    {
-        return $this->fire_count;
+    function stopPropagation(){
+        $this->is_propagation_stopped = true;
     }
 
-    /**
-     * Get event listeners
-     *
-     * @return \SitPHP\Helpers\Collection
-     */
-    function getListeners()
-    {
-        /** @var EventManager $event_manager */
-        $event_manager = self::getServiceClass('event_manager');
-        return $event_manager::getListeners($this->getName());
+    function isPropagationStopped(){
+        return $this->is_propagation_stopped;
     }
 
-    function removeListeners(){
-        /** @var EventManager $event_manager */
-        $event_manager = self::getServiceClass('event_manager');
-        return $event_manager::removeListeners($this->getName());
+    function getFireCount(){
+        return $this->manager->getFireCount($this->name);
     }
 }
