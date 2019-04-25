@@ -32,6 +32,7 @@ class EventManager{
      * @var bool
      */
     private $is_log_active = false;
+    private $fire_count = [];
 
 
     /**
@@ -310,8 +311,14 @@ class EventManager{
     }
 
 
-    function getFireCount(){
-        
+    /**
+     * Return how many times an event was fired
+     *
+     * @param string $event_name
+     * @return int
+     */
+    function getFireCount(string $event_name){
+        return $this->fire_count[$event_name] ?? 0;
     }
 
 
@@ -350,6 +357,11 @@ class EventManager{
      * @param Bench $bench
      */
     protected function logEvent(Event $event, Bench $bench){
+        if(!isset($this->fire_count[$event->getName()])){
+            $this->fire_count[$event->getName()] = 0;
+        }
+        $this->fire_count[$event->getName()]++;
+
         if(!$this->is_log_active){
             return;
         }

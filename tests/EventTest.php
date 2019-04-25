@@ -10,7 +10,6 @@ use SitPHP\Events\EventManager;
 class EventTest extends TestCase
 {
 
-
     /*
      * Test name
      */
@@ -50,13 +49,20 @@ class EventTest extends TestCase
     function testRemoveAllParams()
     {
         $event = new Event('my_event');
-        $event->removeAllParams();
         $event->addParam('param 1');
         $event->addParam('param 2');
 
         $this->assertEquals(['param 1', 'param 2'], $event->getAllParams());
         $event->removeAllParams();
         $this->assertEquals([], $event->getAllParams());
+    }
+
+    function testHasParam(){
+        $event = new Event('my_event');
+        $event->setParam('param_1','param 1');
+
+        $this->assertTrue($event->hasParam('param_1'));
+        $this->assertFalse($event->hasParam('undefined'));
     }
 
     /*

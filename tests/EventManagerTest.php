@@ -321,6 +321,13 @@ class EventManagerTest extends TestCase
         $this->assertFalse($event_manager->isLogActive());
     }
 
+    function testFireCount(){
+        $event_manager = new EventManager();
+        $event_manager->fire('my_event');
+        $event_manager->fire('my_event');
+
+        $this->assertEquals(2, $event_manager->getFireCount('my_event'));
+    }
     function testGetEventLog(){
         $event_manager = new EventManager();
         $this->assertNull($event_manager->getEventLog());
