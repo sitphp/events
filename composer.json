@@ -14,8 +14,9 @@
         "php": ">=7"
     },
     "require-dev": {
-        "sitphp/helpers" : "~1.2.6",
-        "gealex/doublit" : "~2.1.2"
+        "sitphp/helpers" : "1.2.*",
+        "sitphp/benchmarks" : "2.1.*",
+        "gealex/doublit" : "2.1.*"
     },
     "autoload": {
         "psr-4": {

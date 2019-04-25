@@ -4,6 +4,8 @@ namespace SitPHP\Events\Tests;
 
 use Doublit\TestCase;
 use InvalidArgumentException;
+use SitPHP\Benchmarks\Bench;
+use SitPHP\Benchmarks\BenchManager;
 use SitPHP\Events\Event;
 use SitPHP\Events\EventManager;
 use SitPHP\Events\Listener;
@@ -21,7 +23,6 @@ class EventManagerTest extends TestCase
         $event_manager = new EventManager();
         $event = $event_manager->fire('my_event');
 
-        $this->assertEquals(1, $event_manager->getFireCount('my_event'));
         $this->assertInstanceOf(Event::class, $event);
     }
     function testFireWithParams(){
@@ -272,18 +273,6 @@ class EventManagerTest extends TestCase
     }
 
     /*
-     * Test fire count
-     */
-    function testFireCount(){
-        $event_manager = new EventManager();
-        $event_manager->fire('my_event');
-        $event_manager->fire('my_event');
-
-        $this->assertEquals(2, $event_manager->getFireCount('my_event'));
-        $this->assertEquals(0, $event_manager->getFireCount('undefined'));
-    }
-
-    /*
      * Test disable events
      */
     function testDisableEvents(){
@@ -318,9 +307,59 @@ class EventManagerTest extends TestCase
     }
 
     /*
-     * Test reporting
+     * Test log
      */
-    function testGetInfos(){
+    function testLogActive(){
+        $bench_manager = new BenchManager();
+        $event_manager = new EventManager();
+        $event_manager->setBenchManager($bench_manager);
+
+        $this->assertFalse($event_manager->isLogActive());
+        $event_manager->enableLog();
+        $this->assertTrue($event_manager->isLogActive());
+        $event_manager->disableLog();
+        $this->assertFalse($event_manager->isLogActive());
+    }
+
+    function testFireCount(){
+        $event_manager = new EventManager();
+        $event_manager->fire('my_event');
+        $event_manager->fire('my_event');
+
+        $this->assertEquals(2, $event_manager->getFireCount('my_event'));
+    }
+    function testGetEventLog(){
+        $event_manager = new EventManager();
+        $this->assertNull($event_manager->getEventLog());
+
+        $event_manager->enableLog();
+        $event_manager->addListener('my_event', MyEventListener::class);
+        $event_manager->fire('my_event');
+
+        $event_log = $event_manager->getEventLog();
+        $this->assertCount(1, $event_log);
+        $this->assertInstanceOf(Bench::class, $event_log[0]['bench']);
+        $this->assertInstanceOf(Event::class, $event_log[0]['event']);
+    }
+
+    function testGetListenerLog(){
+        $event_manager = new EventManager();
+        $this->assertNull($event_manager->getListenerLog());
+        $event_manager->enableLog();
+
+        $event_manager->addListener('my_event', MyEventListener::class, 10);
+        $event_manager->fire('my_event');
+
+        $listener_log = $event_manager->getListenerLog();
+        $this->assertCount(1, $listener_log);
+        $this->assertInstanceOf(Bench::class, $listener_log[0]['bench']);
+        $this->assertInstanceOf(Event::class, $listener_log[0]['event']);
+        $this->assertEquals(10, $listener_log[0]['priority']);
+        $this->assertEquals(MyEventListener::class.'::handle', $listener_log[0]['call']);
+    }
+    
+
+    function testGetListenersReport(){
         $event_manager = new EventManager();
         $event_manager->addListener('my_event', [MyEventListener::class, 'myMethod'],10);
         $event_manager->addListener('my_event', new MyEventListener(),0);
@@ -352,10 +391,10 @@ class EventManagerTest extends TestCase
                 'priority' => 5,
                 'count' => 1
             ]
-        ], $event_manager->getListenersInfos('my_event.sub')->toArray());
+        ], $event_manager->getEventListenersReport('my_event.sub')->toArray());
     }
 
-    function testGetAllInfos(){
+    function testGetAllListeners(){
         $event_manager = new EventManager();
         $event_manager->addListener('my_event', MyEventListener::class,10);
         $event_manager->addListener('my_event', function (){
@@ -384,7 +423,7 @@ class EventManagerTest extends TestCase
                 'priority' => 5,
                 'count' => 0
             ]
-        ], $event_manager->getAllListenersInfos()->toArray());
+        ], $event_manager->getAllListenersReport()->toArray());
     }
 }
 
