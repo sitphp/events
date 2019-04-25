@@ -81,6 +81,10 @@ class Event
         unset($this->params[$name]);
     }
 
+    function hasParam(string $name){
+        return isset($this->params[$name]);
+    }
+
     /**
      * Remove all event parameters
      */
