@@ -2,6 +2,8 @@
 
 namespace SitPHP\Events;
 
+use InvalidArgumentException;
+
 class Event
 {
 
@@ -55,7 +57,7 @@ class Event
         if (is_string($name) || is_int($name)) {
             $this->params[$name] = $value;
         } else {
-            throw new \InvalidArgumentException('Invalid $label argument type : expected string or array of strings');
+            throw new InvalidArgumentException('Invalid $label argument type : expected string or array of strings');
         }
     }
 
@@ -81,7 +83,8 @@ class Event
         unset($this->params[$name]);
     }
 
-    function hasParam(string $name){
+    function hasParam(string $name): bool
+    {
         return isset($this->params[$name]);
     }
 
@@ -98,7 +101,7 @@ class Event
      *
      * @return array
      */
-    function getAllParams()
+    function getAllParams(): array
     {
         return $this->params;
     }
@@ -107,7 +110,8 @@ class Event
         $this->manager = $manager;
     }
 
-    function getManager(){
+    function getManager(): EventManager
+    {
         return $this->manager;
     }
 
@@ -115,11 +119,13 @@ class Event
         $this->is_propagation_stopped = true;
     }
 
-    function isPropagationStopped(){
+    function isPropagationStopped(): bool
+    {
         return $this->is_propagation_stopped;
     }
 
-    function getFireCount(){
+    function getFireCount(): int
+    {
         return $this->manager->getFireCount($this->name);
     }
 }

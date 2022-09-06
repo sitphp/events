@@ -11,12 +11,12 @@
         }
     ],
     "require": {
-        "php": ">=7"
+        "php": ">=7.2"
     },
     "require-dev": {
-        "sitphp/helpers" : "1.2.*",
-        "sitphp/benchmarks" : "2.1.*",
-        "gealex/doublit" : "2.1.*"
+        "sitphp/helpers" : "v1.4.*",
+        "sitphp/benchmarks" : "v2.4.*",
+        "sitphp/doubles" : "v2.4.*"
     },
     "autoload": {
         "psr-4": {

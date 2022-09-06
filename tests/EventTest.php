@@ -2,8 +2,8 @@
 
 namespace SitPHP\Events\Tests;
 
-use Doublit\Doublit;
-use Doublit\TestCase;
+use SitPHP\Doubles\Double;
+use SitPHP\Doubles\TestCase;
 use SitPHP\Events\Event;
 use SitPHP\Events\EventManager;
 
@@ -32,7 +32,7 @@ class EventTest extends TestCase
     function testSetParamWithInvalidNameShouldFail()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $event =new Event('my_event');
+        $event = new Event('my_event');
         $event->setParam(new \stdClass(), 'value');
     }
 
@@ -93,8 +93,8 @@ class EventTest extends TestCase
         $event = new Event('my_event');
 
         /** @var EventManager $event_manager */
-        $event_manager = Doublit::dummy(EventManager::class)->getInstance();
-        $event_manager::_method('getFireCount')->stub(3);
+        $event_manager = Double::dummy(EventManager::class)->getInstance();
+        $event_manager::_method('getFireCount')->return(3);
         $event->setManager($event_manager);
         $this->assertEquals(3, $event->getFireCount());
     }

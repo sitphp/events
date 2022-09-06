@@ -36,21 +36,11 @@ class EventManager{
 
 
     /**
-     * Set bench manager
-     *
-     * @param BenchManager $bench_manager
-     */
-    function setBenchManager(BenchManager $bench_manager){
-        $this->bench_manager = $bench_manager;
-    }
-
-
-    /**
      * Add event listener
      *
      * @param $event_name
      * @param $listener
-     * @param int $priority
+     * @param int|null $priority
      */
     function addListener($event_name, $listener, int $priority = null){
 
@@ -177,7 +167,8 @@ class EventManager{
      * @param array $params
      * @return Event
      */
-    function fire($event, array $params = []){
+    function fire($event, array $params = []): Event
+    {
 
         // Validate event
         if(is_string($event)){
@@ -273,7 +264,8 @@ class EventManager{
      * @param string $event_name
      * @return bool
      */
-    function isEventEnabled(string $event_name){
+    function isEventEnabled(string $event_name): bool
+    {
         $enabled = true;
         if($this->disabled || isset($this->disabled_events[$event_name]) && $this->disabled_events[$event_name]){
             $enabled = false;
@@ -292,18 +284,21 @@ class EventManager{
         $this->is_log_active = false;
     }
 
-    function isLogActive(){
+    function isLogActive(): bool
+    {
         return $this->is_log_active;
     }
 
-    function getEventLog(){
+    function getEventLog(): ?array
+    {
         if(!$this->is_log_active){
             return null;
         }
         return $this->event_log;
     }
 
-    function getListenerLog(){
+    function getListenerLog(): ?array
+    {
         if(!$this->is_log_active){
             return null;
         }
@@ -317,14 +312,18 @@ class EventManager{
      * @param string $event_name
      * @return int
      */
-    function getFireCount(string $event_name){
+    function getFireCount(string $event_name): int
+    {
         return $this->fire_count[$event_name] ?? 0;
     }
 
 
-    function getAllListenersReport(){
+    function getEventListenersReport(string $event): Collection
+    {
+
+        $listeners_def = $this->getEventListenersDef($event);
         $report = new Collection();
-        foreach($this->listeners_def as $listener_def){
+        foreach($listeners_def as $listener_def){
             $report[] = [
                 'event' => $listener_def['event'],
                 'priority' => $listener_def['priority'],
@@ -335,11 +334,10 @@ class EventManager{
         return $report;
     }
 
-    function getEventListenersReport(string $event){
-
-        $listeners_def = $this->getEventListenersDef($event);
+    function getAllListenersReport(): Collection
+    {
         $report = new Collection();
-        foreach($listeners_def as $listener_def){
+        foreach($this->listeners_def as $listener_def){
             $report[] = [
                 'event' => $listener_def['event'],
                 'priority' => $listener_def['priority'],
@@ -401,10 +399,11 @@ class EventManager{
     /**
      * Return event listeners' definitions
      *
-     * @param $event_name
+     * @param string $event_name
      * @return Collection
      */
-    protected function getEventListenersDef(string $event_name){
+    protected function getEventListenersDef(string $event_name): Collection
+    {
         $listeners = new Collection();
         foreach($this->listeners_def as $key => $listener) {
             if ($event_name !== $listener['event'] && !Text::startsWith($event_name, $listener['event'] . '.')) {
@@ -422,7 +421,8 @@ class EventManager{
      * @param array $listener_def
      * @return string
      */
-    protected function resolveListenerCallInfo(array $listener_def){
+    protected function resolveListenerCallInfo(array $listener_def): string
+    {
         if(is_string($listener_def['call'])){
             $call = $listener_def['call'].'::'.$listener_def['method'];
         } else if($listener_def['call'] instanceof Listener){
@@ -453,8 +453,17 @@ class EventManager{
         }
         // Call listener
 
-        $call = isset($listener_def['method']) ? [$listener, $listener_def['method']] : $listener;
-        return $call;
+        return isset($listener_def['method']) ? [$listener, $listener_def['method']] : $listener;
+    }
+
+
+    /**
+     * Set bench manager
+     *
+     * @param BenchManager $bench_manager
+     */
+    function setBenchManager(BenchManager $bench_manager){
+        $this->bench_manager = $bench_manager;
     }
 
     /**
@@ -462,7 +471,8 @@ class EventManager{
      *
      * @return BenchManager
      */
-    protected function getBenchManager(){
+    protected function getBenchManager(): BenchManager
+    {
         if(!isset($this->bench_manager)){
             $this->bench_manager = new BenchManager();
         }

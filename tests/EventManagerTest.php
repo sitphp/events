@@ -2,7 +2,7 @@
 
 namespace SitPHP\Events\Tests;
 
-use Doublit\TestCase;
+use SitPHP\Doubles\TestCase;
 use InvalidArgumentException;
 use SitPHP\Benchmarks\Bench;
 use SitPHP\Benchmarks\BenchManager;
@@ -328,7 +328,7 @@ class EventManagerTest extends TestCase
 
         $this->assertEquals(2, $event_manager->getFireCount('my_event'));
     }
-    
+
     function testGetEventLog(){
         $event_manager = new EventManager();
         $this->assertNull($event_manager->getEventLog());
